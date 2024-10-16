@@ -205,8 +205,6 @@ app.get('/camaras', async (req, res) => {
     }
 });
 
-// Crear las tablas al iniciar el servidor
-crearTablas().catch(err => console.error('Error creating tables:', err));
 
 // Iniciar el servidor
 app.listen(PORT, () => {
