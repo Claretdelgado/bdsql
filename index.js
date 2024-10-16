@@ -135,7 +135,7 @@ app.post('/vehicular', [
     check('descripcion').notEmpty().withMessage('Descripción es requerida'),
     check('fecha').notEmpty().withMessage('Fecha es requerida'),
     check('ubicacion').notEmpty().withMessage('Ubicación es requerida'),
-    check('placas').notEmpty().withMessage('Placas son requeridas')  // Validación para las placas
+    check('placas').notEmpty().withMessage('Placas son requeridas')
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -143,10 +143,10 @@ app.post('/vehicular', [
     }
 
     try {
-        const { tipo, descripcion, fecha, ubicacion, placas } = req.body;  // Incluir placas
+        const { tipo, descripcion, fecha, ubicacion, placas } = req.body;  
         const nuevoVehicular = await pool.query(
             'INSERT INTO vehicular (tipo, descripcion, fecha, ubicacion, placas) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [tipo, descripcion, fecha, ubicacion, placas]  // Incluir placas en la consulta
+            [tipo, descripcion, fecha, ubicacion, placas]  
         );
         res.status(201).json(nuevoVehicular.rows[0]);
     } catch (err) {
