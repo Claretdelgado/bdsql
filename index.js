@@ -7,11 +7,11 @@ const { check, validationResult } = require('express-validator');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5000',
+    origin: 'http://localhost:4000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type'],
 }));
@@ -30,11 +30,6 @@ app.get('/alertas', (req, res) => {
         { id: 1, mensaje: 'Alerta 1' },
         { id: 2, mensaje: 'Alerta 2' }
     ]);
-});
-
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
 
 // Crear las tablas si no existen
