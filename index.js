@@ -24,37 +24,39 @@ app.get('/', (req, res) => {
     res.send('<h1>Bienvenido a la API de bdsql</h1><p>Este es un ejemplo de respuesta desde la raíz.</p>');
 });
 
-// Otra ruta de ejemplo
-app.get('/alertas', (req, res) => {
-    res.json([
-        { id: 1, mensaje: 'Alerta 1' },
-        { id: 2, mensaje: 'Alerta 2' }
-    ]);
-});
-
 // Crear las tablas si no existen
 const crearTablas = async () => {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS alertas (
             id SERIAL PRIMARY KEY,
-            tipo VARCHAR(50)
+            tipo VARCHAR(50) NOT NULL
         )
     `);
     await pool.query(`
         CREATE TABLE IF NOT EXISTS datos_personales (
             id SERIAL PRIMARY KEY,
-            edad INTEGER,
-            sexo VARCHAR(10),
-            emocion VARCHAR(50)
+            edad INTEGER NOT NULL,
+            sexo VARCHAR(10) NOT NULL,
+            emocion VARCHAR(50) NOT NULL
         )
     `);
     await pool.query(`
         CREATE TABLE IF NOT EXISTS vehicular (
             id SERIAL PRIMARY KEY,
-            tipo VARCHAR(50),
-            descripcion TEXT,
-            fecha VARCHAR(20),
-            ubicacion VARCHAR(100)
+            tipo VARCHAR(50) NOT NULL,
+            descripcion TEXT NOT NULL,
+            fecha VARCHAR(20) NOT NULL,
+            ubicacion VARCHAR(100) NOT NULL
+        )
+    `);
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS camaras (
+            id SERIAL PRIMARY KEY,
+            numero VARCHAR(50) NOT NULL,
+            direccion VARCHAR(100) NOT NULL,
+            tipo VARCHAR(50) NOT NULL,
+            ubicacion VARCHAR(100) NOT NULL,
+            resolucion VARCHAR(50) NOT NULL
         )
     `);
 };
@@ -163,19 +165,13 @@ app.get('/vehiculares', async (req, res) => {
     }
 });
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
-
 // Rutas para Cámaras
 app.post('/camara', [
     check('numero').notEmpty().withMessage('Número de cámara es requerido'),
     check('direccion').notEmpty().withMessage('Dirección es requerida'),
     check('tipo').notEmpty().withMessage('Tipo es requerido'),
     check('ubicacion').notEmpty().withMessage('Ubicación es requerida'),
-    check('resolucion').notEmpty().withMessage('Resolución es requerida')
+    check('resolucion').notEmpty().withMessage('Resolución es requerida'),
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -205,10 +201,13 @@ app.get('/camaras', async (req, res) => {
     }
 });
 
-// Crear las tablas al iniciar el servidor
-crearTablas().catch(err => console.error('Error creating tables:', err));
+// Manejo de errores
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
