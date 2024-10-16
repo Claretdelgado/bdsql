@@ -19,6 +19,24 @@ app.use(cors({
 app.use(helmet());
 app.use(bodyParser.json());
 
+// Ruta para la raíz
+app.get('/', (req, res) => {
+    res.send('<h1>Bienvenido a la API de bdsql</h1><p>Este es un ejemplo de respuesta desde la raíz.</p>');
+});
+
+// Otra ruta de ejemplo
+app.get('/alertas', (req, res) => {
+    res.json([
+        { id: 1, mensaje: 'Alerta 1' },
+        { id: 2, mensaje: 'Alerta 2' }
+    ]);
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+});
+
 // Crear las tablas si no existen
 const crearTablas = async () => {
     await pool.query(`
