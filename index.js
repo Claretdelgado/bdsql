@@ -169,6 +169,45 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
+// Rutas para Cámaras
+app.post('/camara', [
+    check('numero').notEmpty().withMessage('Número de cámara es requerido'),
+    check('direccion').notEmpty().withMessage('Dirección es requerida'),
+    check('tipo').notEmpty().withMessage('Tipo es requerido'),
+    check('ubicacion').notEmpty().withMessage('Ubicación es requerida'),
+    check('resolucion').notEmpty().withMessage('Resolución es requerida')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const { numero, direccion, tipo, ubicacion, resolucion } = req.body;
+        const nuevaCamara = await pool.query(
+            'INSERT INTO camaras (numero, direccion, tipo, ubicacion, resolucion) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [numero, direccion, tipo, ubicacion, resolucion]
+        );
+        res.status(201).json(nuevaCamara.rows[0]);
+    } catch (err) {
+        console.error('Error inserting camara:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.get('/camaras', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM camaras');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching camaras:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Crear las tablas al iniciar el servidor
+crearTablas().catch(err => console.error('Error creating tables:', err));
+
 // Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
