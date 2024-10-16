@@ -129,13 +129,13 @@ app.get('/datos_personales', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
 // Rutas para Vehicular
 app.post('/vehicular', [
     check('tipo').notEmpty().withMessage('Tipo es requerido'),
     check('descripcion').notEmpty().withMessage('Descripción es requerida'),
     check('fecha').notEmpty().withMessage('Fecha es requerida'),
-    check('ubicacion').notEmpty().withMessage('Ubicación es requerida')
+    check('ubicacion').notEmpty().withMessage('Ubicación es requerida'),
+    check('placas').notEmpty().withMessage('Placas son requeridas')  // Validación para las placas
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -143,10 +143,10 @@ app.post('/vehicular', [
     }
 
     try {
-        const { tipo, descripcion, fecha, ubicacion } = req.body;
+        const { tipo, descripcion, fecha, ubicacion, placas } = req.body;  // Incluir placas
         const nuevoVehicular = await pool.query(
-            'INSERT INTO vehicular (tipo, descripcion, fecha, ubicacion) VALUES ($1, $2, $3, $4) RETURNING *',
-            [tipo, descripcion, fecha, ubicacion]
+            'INSERT INTO vehicular (tipo, descripcion, fecha, ubicacion, placas) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [tipo, descripcion, fecha, ubicacion, placas]  // Incluir placas en la consulta
         );
         res.status(201).json(nuevoVehicular.rows[0]);
     } catch (err) {
@@ -164,6 +164,7 @@ app.get('/vehiculares', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
 
 // Rutas para Cámaras
 app.post('/camara', [
