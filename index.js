@@ -2,24 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg');
+const pool = require('./db'); // Importa la conexión a la base de datos
 const { check, validationResult } = require('express-validator');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configurar la conexión a la base de datos utilizando variables de entorno
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://aquatic-frontend.onrender.com'],
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type'],
 }));
@@ -27,36 +19,35 @@ app.use(cors({
 app.use(helmet());
 app.use(bodyParser.json());
 
-// Crear tablas si no existen
+// Crear las tablas si no existen
 const crearTablas = async () => {
-    try {
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS alertas (
-                id SERIAL PRIMARY KEY,
-                tipo VARCHAR(50)
-            );
-            CREATE TABLE IF NOT EXISTS datos_personales (
-                id SERIAL PRIMARY KEY,
-                edad INTEGER,
-                sexo VARCHAR(10),
-                emocion VARCHAR(50)
-            );
-            CREATE TABLE IF NOT EXISTS vehicular (
-                id SERIAL PRIMARY KEY,
-                tipo VARCHAR(50),
-                descripcion TEXT,
-                fecha VARCHAR(20),
-                ubicacion VARCHAR(100)
-            );
-        `);
-        console.log('Tablas creadas o ya existen.');
-    } catch (error) {
-        console.error('Error al crear tablas:', error);
-    }
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS alertas (
+            id SERIAL PRIMARY KEY,
+            tipo VARCHAR(50)
+        )
+    `);
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS datos_personales (
+            id SERIAL PRIMARY KEY,
+            edad INTEGER,
+            sexo VARCHAR(10),
+            emocion VARCHAR(50)
+        )
+    `);
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS vehicular (
+            id SERIAL PRIMARY KEY,
+            tipo VARCHAR(50),
+            descripcion TEXT,
+            fecha VARCHAR(20),
+            ubicacion VARCHAR(100)
+        )
+    `);
 };
 
 // Crear las tablas al iniciar el servidor
-crearTablas();
+crearTablas().catch(err => console.error('Error creating tables:', err));
 
 // Rutas para Alerta
 app.post('/alerta', [
@@ -76,7 +67,7 @@ app.post('/alerta', [
         res.status(201).json(nuevaAlerta.rows[0]);
     } catch (err) {
         console.error('Error inserting alerta:', err);
-        res.status(500).json({ error: 'Error al insertar alerta' });
+        res.status(500).send('Server Error');
     }
 });
 
@@ -86,7 +77,7 @@ app.get('/alertas', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching alertas:', err);
-        res.status(500).json({ error: 'Error al obtener alertas' });
+        res.status(500).send('Server Error');
     }
 });
 
@@ -110,7 +101,7 @@ app.post('/datos_personales', [
         res.status(201).json(nuevoDato.rows[0]);
     } catch (err) {
         console.error('Error inserting datos personales:', err);
-        res.status(500).json({ error: 'Error al insertar datos personales' });
+        res.status(500).send('Server Error');
     }
 });
 
@@ -120,7 +111,7 @@ app.get('/datos_personales', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching datos personales:', err);
-        res.status(500).json({ error: 'Error al obtener datos personales' });
+        res.status(500).send('Server Error');
     }
 });
 
@@ -145,7 +136,7 @@ app.post('/vehicular', [
         res.status(201).json(nuevoVehicular.rows[0]);
     } catch (err) {
         console.error('Error inserting vehicular:', err);
-        res.status(500).json({ error: 'Error al insertar vehicular' });
+        res.status(500).send('Server Error');
     }
 });
 
@@ -155,22 +146,7 @@ app.get('/vehiculares', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching vehiculares:', err);
-        res.status(500).json({ error: 'Error al obtener vehiculares' });
-    }
-});
-
-// Ruta para interactuar con Motoko
-app.post('/motoko/:metodo', async (req, res) => {
-    const { metodo } = req.params;
-    const data = req.body;
-
-    try {
-        // Llama a la función de Motoko
-        const resultado = await llamar_canister(metodo, data);
-        res.json(resultado);
-    } catch (err) {
-        console.error('Error calling Motoko method:', err);
-        res.status(500).json({ error: 'Error al llamar el método de Motoko' });
+        res.status(500).send('Server Error');
     }
 });
 
